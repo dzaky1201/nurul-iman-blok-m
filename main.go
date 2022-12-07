@@ -9,12 +9,10 @@ import (
 	"nurul-iman-blok-m/database"
 	"nurul-iman-blok-m/handler"
 	"nurul-iman-blok-m/helper"
-	"nurul-iman-blok-m/model"
 	"nurul-iman-blok-m/role"
 	"nurul-iman-blok-m/study_rundown"
 	"nurul-iman-blok-m/user"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -57,13 +55,6 @@ func main() {
 	api.GET("/rundown/:id", studyRundownHandler.GetDetailStudyRundown)
 	api.DELETE("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.DeleteStudyRundown)
 	api.PUT("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.UpdateStudyRundown)
-
-	roleInsert := model.Role{
-		RoleName:  "super-admin",
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	}
-	db.Save(&roleInsert)
 
 	router.Run(":8080")
 }
