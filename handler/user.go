@@ -20,6 +20,10 @@ func NewUserHandler(userService user.UserService, authService auth.Service) *use
 	}
 }
 
+func HelloWorld(c *gin.Context) {
+	c.JSON(http.StatusOK, "success")
+}
+
 func (h *userHandler) RegisterUser(c *gin.Context) {
 	var input user.RegisterUserInput
 
