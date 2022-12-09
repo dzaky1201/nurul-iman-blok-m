@@ -64,7 +64,7 @@ func main() {
 	//	UpdatedAt: time.Time{},
 	//}
 	//db.Save(&roleDefault)
-	router.Run(":8080")
+	router.Run()
 }
 
 func authMiddleware(autService auth.Service, userService user.UserService) gin.HandlerFunc {
