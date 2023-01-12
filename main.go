@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"net/http"
@@ -35,6 +36,7 @@ func main() {
 	studyRundownHandler := handler.NewHandlerStudyRundown(studyRundownService)
 
 	router := gin.Default()
+	router.Use(cors.Default())
 	router.Static("/images", "./images")
 	api := router.Group("/api/v1")
 	// for test api
@@ -58,12 +60,6 @@ func main() {
 	api.DELETE("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.DeleteStudyRundown)
 	api.PUT("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.UpdateStudyRundown)
 
-	//roleDefault := model.Role{
-	//	RoleName:  "super-admin",
-	//	CreatedAt: time.Time{},
-	//	UpdatedAt: time.Time{},
-	//}
-	//db.Save(&roleDefault)
 	router.Run()
 }
 
