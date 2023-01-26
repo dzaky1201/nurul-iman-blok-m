@@ -58,7 +58,7 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 
 	result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("masjid-nurul-iman"),
-		Key:    aws.String("my-object-key"),
+		Key:    aws.String(fileImage.Filename),
 		Body:   f,
 		ACL:    "public-read",
 	})
