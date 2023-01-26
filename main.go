@@ -25,22 +25,6 @@ import (
 func main() {
 	db := database.Db()
 
-	// load env variables
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
-	// setup s3 uploader
-	cfg, errS3 := config.LoadDefaultConfig(context.TODO())
-	if errS3 != nil {
-		log.Printf("error: %v", errS3)
-		return
-	}
-
-	client := s3.NewFromConfig(cfg)
-	uploader := manager.NewUploader(client)
-
 	userRepository := user.NewRepository(db)
 	roleRepository := role.NewRepository(db)
 	announcementRepository := announcement.NewRepositoryAnnouncement(db)
@@ -54,13 +38,30 @@ func main() {
 
 	userHandler := handler.NewUserHandler(userService, authService)
 	roleHandler := handler.NewRoleHandler(roleService)
-	announcementHandler := handler.NewHandlerAnnouncement(announcementService, *uploader)
 	studyRundownHandler := handler.NewHandlerStudyRundown(studyRundownService)
+
+	// load env variables
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	// setup gin app
 	router := gin.Default()
 	router.Use(cors.Default())
 	router.Static("/images", "./images")
+
+	// setup s3 uploader
+	cfg, errS3 := config.LoadDefaultConfig(context.TODO())
+	if errS3 != nil {
+		log.Printf("error: %v", errS3)
+		return
+	}
+
+	client := s3.NewFromConfig(cfg)
+	uploader := manager.NewUploader(client)
+
+	announcementHandler := handler.NewHandlerAnnouncement(announcementService, *uploader)
 
 	api := router.Group("/api/v1")
 	// for test api
