@@ -1,7 +1,11 @@
 package handler
 
 import (
+	"context"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"nurul-iman-blok-m/announcement"
@@ -14,10 +18,11 @@ import (
 
 type announcementHandler struct {
 	service announcement.AnnouncementService
+	manager manager.Uploader
 }
 
-func NewHandlerAnnouncement(service announcement.AnnouncementService) *announcementHandler {
-	return &announcementHandler{service}
+func NewHandlerAnnouncement(service announcement.AnnouncementService, manager manager.Uploader) *announcementHandler {
+	return &announcementHandler{service, manager}
 }
 
 func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
@@ -43,18 +48,23 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
-	extenstionFile := ""
-	fileName := strings.Split(fileImage.Filename, ".")
+	f, openErr := fileImage.Open()
 
-	if len(fileName) == 2 {
-		extenstionFile = fileName[1]
+	if openErr != nil {
+		response := helper.ApiResponse("Failed to upload image", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
 	}
-	path := fmt.Sprintf("images/announcement-%s-%s.%s", input.Slug, time.Now().Format("2006-02-01"), extenstionFile)
-	errUploadBanner := c.SaveUploadedFile(fileImage, path)
+
+	result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String("masjid-nurul-iman"),
+		Key:    aws.String("my-object-key"),
+		Body:   f,
+		ACL:    "public-read",
+	})
 
 	if errUploadBanner != nil {
-		fmt.Println("path-error")
-		response := helper.ApiResponse("Failed to upload banner image", http.StatusBadRequest, "error", nil)
+		response := helper.ApiResponse("Upload failed", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
@@ -64,7 +74,7 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 		return
 	}
 
-	responseAddAnnouncement, createdBy, errAdd := h.service.AddAnnouncement(input, path)
+	responseAddAnnouncement, createdBy, errAdd := h.service.AddAnnouncement(input, result.Location)
 	if errAdd != nil {
 		response := helper.ApiResponse("Failed to add announcement", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
