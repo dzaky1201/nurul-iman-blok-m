@@ -15,12 +15,13 @@ import (
 )
 
 type announcementHandler struct {
-	service announcement.AnnouncementService
-	manager manager.Uploader
+	service  announcement.AnnouncementService
+	manager  manager.Uploader
+	s3Client s3.Client
 }
 
-func NewHandlerAnnouncement(service announcement.AnnouncementService, manager manager.Uploader) *announcementHandler {
-	return &announcementHandler{service, manager}
+func NewHandlerAnnouncement(service announcement.AnnouncementService, manager manager.Uploader, s3Client s3.Client) *announcementHandler {
+	return &announcementHandler{service, manager, s3Client}
 }
 
 func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
@@ -213,7 +214,7 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 			return
 		}
 
-		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, result.Location)
+		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, result.Location, h.s3Client)
 		if errUpdateData != nil {
 			response := helper.ApiResponse("Failed to update announcement", http.StatusBadRequest, "error", nil)
 			c.JSON(http.StatusBadRequest, response)
@@ -231,7 +232,7 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
-		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, "")
+		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, "", h.s3Client)
 		if errUpdateData != nil {
 			response := helper.ApiResponse("Failed to update announcement", http.StatusBadRequest, "error", nil)
 			c.JSON(http.StatusBadRequest, response)

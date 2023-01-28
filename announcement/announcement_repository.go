@@ -1,9 +1,13 @@
 package announcement
 
 import (
+	"context"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/gorm"
 	"nurul-iman-blok-m/model"
 	"os"
+	"strings"
 )
 
 type AnnouncementRepository interface {
@@ -12,7 +16,7 @@ type AnnouncementRepository interface {
 	GetListAnnouncement(list func(db *gorm.DB) *gorm.DB) ([]model.Announcement, int, error)
 	DetailAnnouncement(ID uint) (model.Announcement, error)
 	DeleteAnnouncement(ID uint) error
-	Update(announcement model.Announcement) (model.Announcement, error)
+	Update(announcement model.Announcement, s3Client s3.Client) (model.Announcement, error)
 }
 
 type announcementRepository struct {
@@ -98,15 +102,28 @@ func (r *announcementRepository) DeleteAnnouncement(ID uint) error {
 	return nil
 }
 
-func (r *announcementRepository) Update(announcement model.Announcement) (model.Announcement, error) {
-	//var currentAnnouncement model.Announcement
-	//r.database.Where("id = ?", announcement.ID).Find(&currentAnnouncement)
-	//if announcement.Images != currentAnnouncement.Images {
-	//	errDeleteFile := os.Remove(currentAnnouncement.Images)
-	//	if errDeleteFile != nil {
-	//		return announcement, errDeleteFile
-	//	}
-	//}
+func (r *announcementRepository) Update(announcement model.Announcement, s3Client s3.Client) (model.Announcement, error) {
+	var currentAnnouncement model.Announcement
+	r.database.Where("id = ?", announcement.ID).Find(&currentAnnouncement)
+	if announcement.Images != currentAnnouncement.Images {
+		//errDeleteFile := os.Remove(currentAnnouncement.Images)
+		//if errDeleteFile != nil {
+		//	return announcement, errDeleteFile
+		//}
+		getPathForDelete := strings.Replace(currentAnnouncement.Images, "https://masjid-nurul-iman.s3.ap-northeast-1.amazonaws.com/", "", -1)
+		awsClient := s3Client
+
+		input := &s3.DeleteObjectInput{
+			Bucket: aws.String("masjid-nurul-iman"),
+			Key:    aws.String(getPathForDelete),
+		}
+
+		_, errDeleteItem := awsClient.DeleteObject(context.TODO(), input)
+
+		if errDeleteItem != nil {
+			return announcement, errDeleteItem
+		}
+	}
 	err := r.database.Save(&announcement).Error
 	if err != nil {
 		return announcement, err

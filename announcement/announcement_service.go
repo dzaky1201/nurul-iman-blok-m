@@ -1,6 +1,7 @@
 package announcement
 
 import (
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/gorm"
 	"nurul-iman-blok-m/model"
 	"strings"
@@ -11,7 +12,7 @@ type AnnouncementService interface {
 	GetListAnnouncement(list func(db *gorm.DB) *gorm.DB) ([]model.Announcement, int, error)
 	GetDetailAnnouncement(input AnnouncementDetailInput) (model.Announcement, error)
 	DeleteAnnouncement(input AnnouncementDetailInput) error
-	UpdateAnnouncement(input AnnouncementDetailInput, updateData AnnouncementUpdateInput, updatePath string) (model.Announcement, error)
+	UpdateAnnouncement(input AnnouncementDetailInput, updateData AnnouncementUpdateInput, updatePath string, s3Client s3.Client) (model.Announcement, error)
 }
 
 type announcementService struct {
@@ -65,7 +66,7 @@ func (s *announcementService) DeleteAnnouncement(input AnnouncementDetailInput) 
 	return nil
 }
 
-func (s *announcementService) UpdateAnnouncement(input AnnouncementDetailInput, updateData AnnouncementUpdateInput, updatePath string) (model.Announcement, error) {
+func (s *announcementService) UpdateAnnouncement(input AnnouncementDetailInput, updateData AnnouncementUpdateInput, updatePath string, s3Client s3.Client) (model.Announcement, error) {
 	data, err := s.repository.DetailAnnouncement(input.ID)
 	if err != nil {
 		return data, nil
@@ -87,7 +88,7 @@ func (s *announcementService) UpdateAnnouncement(input AnnouncementDetailInput, 
 		data.Description = updateData.Description
 	}
 
-	update, errUpdate := s.repository.Update(data)
+	update, errUpdate := s.repository.Update(data, s3Client)
 	if errUpdate != nil {
 		return update, errUpdate
 	}

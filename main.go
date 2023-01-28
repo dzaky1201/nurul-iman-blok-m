@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/feature/s3/manager"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/gin-contrib/cors"
@@ -19,6 +20,7 @@ import (
 	"nurul-iman-blok-m/role"
 	"nurul-iman-blok-m/study_rundown"
 	"nurul-iman-blok-m/user"
+	"os"
 	"strings"
 )
 
@@ -61,7 +63,7 @@ func main() {
 	client := s3.NewFromConfig(cfg)
 	uploader := manager.NewUploader(client)
 
-	announcementHandler := handler.NewHandlerAnnouncement(announcementService, *uploader)
+	announcementHandler := handler.NewHandlerAnnouncement(announcementService, *uploader, *configS3())
 
 	api := router.Group("/api/v1")
 	// for test api
@@ -131,5 +133,19 @@ func authMiddleware(autService auth.Service, userService user.UserService) gin.H
 
 		c.Set("currentUser", currentUser)
 	}
+
+}
+
+func configS3() *s3.Client {
+
+	creds := credentials.NewStaticCredentialsProvider(os.Getenv("AWS_ACCESS_KEY_ID"), os.Getenv("AWS_SECRET_ACCESS_KEY"), "")
+
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithCredentialsProvider(creds), config.WithRegion(os.Getenv("AWS_REGION")))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return s3.NewFromConfig(cfg)
 
 }
