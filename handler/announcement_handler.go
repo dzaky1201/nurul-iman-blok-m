@@ -181,11 +181,11 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(model.User)
 
 	if fileImage != nil {
-		if fileImage.Size > int64(1024000) {
-			response := helper.ApiResponse("Image too large, max 1MB", http.StatusBadRequest, "error", nil)
-			c.JSON(http.StatusBadRequest, response)
-			return
-		}
+		//if fileImage.Size > int64(1024000) {
+		//	response := helper.ApiResponse("Image too large, max 1MB", http.StatusBadRequest, "error", nil)
+		//	c.JSON(http.StatusBadRequest, response)
+		//	return
+		//}
 		f, openErr := fileImage.Open()
 
 		if openErr != nil {
