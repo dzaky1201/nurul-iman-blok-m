@@ -12,8 +12,6 @@ import (
 	"nurul-iman-blok-m/helper"
 	"nurul-iman-blok-m/model"
 	"strconv"
-	"strings"
-	"time"
 )
 
 type announcementHandler struct {
@@ -50,7 +48,7 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 	}
 
 	if fileImage.Size > int64(1024000) {
-		response := helper.ApiResponse("Image to large, max 1MB", http.StatusBadRequest, "error", nil)
+		response := helper.ApiResponse("Image too large, max 1MB", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
 	}
@@ -183,18 +181,28 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(model.User)
 
 	if fileImage != nil {
-		extenstionFile := ""
-		fileName := strings.Split(fileImage.Filename, ".")
-
-		if len(fileName) == 2 {
-			extenstionFile = fileName[1]
+		if fileImage.Size > int64(1024000) {
+			response := helper.ApiResponse("Image too large, max 1MB", http.StatusBadRequest, "error", nil)
+			c.JSON(http.StatusBadRequest, response)
+			return
 		}
-		path := fmt.Sprintf("images/announcement-update-%s.%s", time.Now().Format("2006-02-01"), extenstionFile)
-		errUploadBanner := c.SaveUploadedFile(fileImage, path)
+		f, openErr := fileImage.Open()
+
+		if openErr != nil {
+			response := helper.ApiResponse("Failed to upload image", http.StatusBadRequest, "error", nil)
+			c.JSON(http.StatusBadRequest, response)
+			return
+		}
+
+		result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
+			Bucket: aws.String("masjid-nurul-iman"),
+			Key:    aws.String(fileImage.Filename),
+			Body:   f,
+			ACL:    "public-read",
+		})
 
 		if errUploadBanner != nil {
-			fmt.Println("path-error")
-			response := helper.ApiResponse("Failed to upload banner image", http.StatusBadRequest, "error", nil)
+			response := helper.ApiResponse("Upload failed", http.StatusBadRequest, "error", nil)
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
@@ -205,7 +213,7 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 			return
 		}
 
-		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, path)
+		updateData, errUpdateData := h.service.UpdateAnnouncement(inputID, inputUpdate, result.Location)
 		if errUpdateData != nil {
 			response := helper.ApiResponse("Failed to update announcement", http.StatusBadRequest, "error", nil)
 			c.JSON(http.StatusBadRequest, response)
