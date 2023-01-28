@@ -12,6 +12,8 @@ import (
 	"nurul-iman-blok-m/helper"
 	"nurul-iman-blok-m/model"
 	"strconv"
+	"strings"
+	"time"
 )
 
 type announcementHandler struct {
@@ -61,9 +63,17 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 		return
 	}
 
+	extenstionFile := ""
+	fileName := strings.Split(fileImage.Filename, ".")
+
+	if len(fileName) == 2 {
+		extenstionFile = fileName[1]
+	}
+	path := fmt.Sprintf("announcement-%s-%s.%s", input.Slug, time.Now().Format("2006-02-01"), extenstionFile)
+
 	result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String("masjid-nurul-iman"),
-		Key:    aws.String(fileImage.Filename),
+		Key:    aws.String(path),
 		Body:   f,
 		ACL:    "public-read",
 	})
@@ -195,9 +205,17 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 			return
 		}
 
+		extenstionFile := ""
+		fileName := strings.Split(fileImage.Filename, ".")
+
+		if len(fileName) == 2 {
+			extenstionFile = fileName[1]
+		}
+		path := fmt.Sprintf("announcement-update-%s.%s", time.Now().Format("2006-02-01"), extenstionFile)
+
 		result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
 			Bucket: aws.String("masjid-nurul-iman"),
-			Key:    aws.String(fileImage.Filename),
+			Key:    aws.String(path),
 			Body:   f,
 			ACL:    "public-read",
 		})
