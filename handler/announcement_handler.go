@@ -49,7 +49,7 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 		return
 	}
 
-	if fileImage.Size == int64(1024000) {
+	if fileImage.Size > int64(1024000) {
 		response := helper.ApiResponse("Image to large, max 1MB", http.StatusBadRequest, "error", nil)
 		c.JSON(http.StatusBadRequest, response)
 		return
