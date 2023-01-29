@@ -87,7 +87,14 @@ func main() {
 	api.DELETE("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.DeleteStudyRundown)
 	api.PUT("/rundown/:id", authMiddleware(authService, userService), studyRundownHandler.UpdateStudyRundown)
 
-	router.Run()
+	//roleInsert := model.Role{
+	//	RoleName:  "super-admin",
+	//	CreatedAt: time.Time{},
+	//	UpdatedAt: time.Time{},
+	//}
+	//db.Save(&roleInsert)
+
+	router.Run(":8080")
 }
 
 func authMiddleware(autService auth.Service, userService user.UserService) gin.HandlerFunc {

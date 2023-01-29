@@ -72,7 +72,7 @@ func (h *announcementHandler) AddAnnouncement(c *gin.Context) {
 	path := fmt.Sprintf("announcement-%s-%s.%s", input.Slug, time.Now().Format("2006-02-01"), extenstionFile)
 
 	result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String("masjid-nurul-iman"),
+		Bucket: aws.String("nurul-iman-test"),
 		Key:    aws.String(path),
 		Body:   f,
 		ACL:    "public-read",
@@ -214,7 +214,7 @@ func (h *announcementHandler) UpdateAnnouncement(c *gin.Context) {
 		path := fmt.Sprintf("announcement-update-%s.%s", time.Now().Format("2006-02-01"), extenstionFile)
 
 		result, errUploadBanner := h.manager.Upload(context.TODO(), &s3.PutObjectInput{
-			Bucket: aws.String("masjid-nurul-iman"),
+			Bucket: aws.String("nurul-iman-test"),
 			Key:    aws.String(path),
 			Body:   f,
 			ACL:    "public-read",

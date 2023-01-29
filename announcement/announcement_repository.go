@@ -114,7 +114,7 @@ func (r *announcementRepository) Update(announcement model.Announcement, s3Clien
 		awsClient := s3Client
 
 		input := &s3.DeleteObjectInput{
-			Bucket: aws.String("masjid-nurul-iman"),
+			Bucket: aws.String("nurul-iman-test"),
 			Key:    aws.String(getPathForDelete),
 		}
 
