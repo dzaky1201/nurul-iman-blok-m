@@ -28,11 +28,7 @@ func (s *StudyServiceImpl) AddStudy(input StudyRundownInput) (model.StudyRundown
 	study.UserID = input.UserID
 	study.Time = input.Time
 	study.ScheduleDate = input.ScheduleDate
-	if input.OnScheduled {
-		study.OnScheduled = 1
-	} else {
-		study.OnScheduled = 0
-	}
+	study.OnScheduled = input.OnScheduled
 
 	addStudy, err := s.repository.AddStudy(study)
 	if err != nil {
@@ -92,11 +88,7 @@ func (s *StudyServiceImpl) UpdateStudy(dataUpdate StudyRundownUpdateInput, input
 		data.Time = dataUpdate.Time
 	}
 
-	if dataUpdate.OnScheduled {
-		data.OnScheduled = 1
-	} else {
-		data.OnScheduled = 0
-	}
+	data.OnScheduled = dataUpdate.OnScheduled
 
 	update, errUpdate := s.repository.UpdateStudy(data)
 	if errUpdate != nil {

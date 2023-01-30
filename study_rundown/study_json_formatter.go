@@ -19,14 +19,11 @@ type UstadzFormatter struct {
 }
 
 func StudyResponseFormat(rundown model.StudyRundown) StudyRundownFormatResponse {
-	onScheduled := false
-	if rundown.OnScheduled == 1 {
-		onScheduled = true
-	}
+
 	return StudyRundownFormatResponse{
 		ID:          rundown.ID,
 		Title:       rundown.Title,
-		OnScheduled: onScheduled,
+		OnScheduled: rundown.OnScheduled,
 		Date:        rundown.ScheduleDate,
 		Time:        rundown.Time,
 		UstadzName:  rundown.User.Name,
